@@ -1,4 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /dashboard/
 
 Sitemap: https://cbbccb915.github.io/wanjiakang-yangshanyao/sitemap.xml
