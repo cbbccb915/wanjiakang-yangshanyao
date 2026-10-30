@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>流量看板｜万家康羊山窑店</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body{background:#f3f7f5}
+  .dash-head{padding:34px 0 20px;border-bottom:1px solid var(--line);background:#fff}
+  .dash-head .wrap{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap}
+  .dash-head h1{margin:0;font-size:30px}
+  .dash-head p{margin:6px 0 0;color:var(--muted);font-size:13px}
+  .dash-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:22px 0}
+  .stat{background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+  .stat span{display:block;color:var(--muted);font-size:12px}
+  .stat b{display:block;font-size:30px;line-height:1.2;margin-top:6px;color:var(--green-dark)}
+  .panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;margin-bottom:18px}
+  .panel h2{margin:0 0 6px;font-size:18px}
+  .panel .sub{color:var(--muted);font-size:12px;margin:0 0 18px}
+  .chart{display:flex;align-items:flex-end;gap:10px;height:240px;padding:12px 0 0;overflow-x:auto}
+  .bar-wrap{flex:1;min-width:44px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .bar{width:100%;max-width:34px;background:linear-gradient(180deg,#0b7a4b,#075435);border-radius:6px 6px 0 0;min-height:2px;transition:height .3s}
+  .bar-label{font-size:11px;color:var(--muted);margin-top:7px;white-space:nowrap}
+  .bar-num{font-size:11px;color:var(--green-dark);font-weight:700;margin-bottom:5px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600;background:#f7fbf8}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  .note{font-size:12px;color:var(--muted);line-height:1.7;margin:8px 0 0}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  @media(max-width:900px){.stats{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.stats{grid-template-columns:1fr 1fr}.dash-head h1{font-size:24px}.chart{gap:6px}}
+</style>
+</head>
+<body>
+<header class="dash-head">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">内部使用 · noindex</p>
+      <h1>流量变化看板</h1>
+      <p id="updated">正在读取 traffic.json…</p>
+    </div>
+    <div class="dash-actions">
+      <a class="btn ghost" href="../index.html">回门店页</a>
+      <button class="btn primary" type="button" onclick="loadData()">刷新数据</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="stats">
+    <div class="stat"><span>今日页面加载</span><b id="today">—</b></div>
+    <div class="stat"><span>近 7 天</span><b id="week">—</b></div>
+    <div class="stat"><span>近 14 天</span><b id="all">—</b></div>
+    <div class="stat"><span>最多页面</span><b id="top" style="font-size:20px">—</b></div>
+  </section>
+
+  <section class="panel">
+    <h2>每日趋势</h2>
+    <p class="sub">页面加载计数，含刷新；不是独立访客（UV）。</p>
+    <div id="chart" class="chart"></div>
+  </section>
+
+  <section class="panel">
+    <h2>页面明细</h2>
+    <p class="sub">今天 / 近 7 天 / 近 14 天</p>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr><th>页面</th><th class="num">今天</th><th class="num">近 7 天</th><th class="num">近 14 天</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="note" id="note"></p>
+  </section>
+</main>
+
+<script>
+let DATA = null;
+
+function fmt(n){return new Intl.NumberFormat('zh-CN').format(n||0)}
+function sumDays(page, days){return days.reduce((a,d)=>a+((DATA.counts[page]||{})[d]||0),0)}
+function totalDay(day){return Object.keys(DATA.pages).reduce((a,p)=>a+((DATA.counts[p]||{})[day]||0),0)}
+
+function draw(){
+  const days = DATA.days || [];
+  const today = days[days.length-1];
+  const last7 = days.slice(-7);
+  const totals = days.map(totalDay);
+  const allTotal = totals.reduce((a,b)=>a+b,0);
+  document.getElementById('today').textContent = fmt(totalDay(today));
+  document.getElementById('week').textContent = fmt(last7.reduce((a,d)=>a+totalDay(d),0));
+  document.getElementById('all').textContent = fmt(allTotal);
+  const pageTotals = Object.keys(DATA.pages).map(p=>({p,n:sumDays(p,days)}));
+  pageTotals.sort((a,b)=>b.n-a.n);
+  document.getElementById('top').textContent = pageTotals[0] && pageTotals[0].n>0 ? DATA.pages[pageTotals[0].p] : '暂无数据';
+  document.getElementById('updated').textContent = '数据更新：' + (DATA.updated||'—') + ' · 时区 ' + (DATA.timezone||'Asia/Shanghai');
+
+  const max = Math.max(1, ...totals);
+  const chart = document.getElementById('chart');
+  chart.innerHTML = days.map((d,i)=>{
+    const h = Math.round((totals[i]/max)*180);
+    return '<div class="bar-wrap"><div class="bar-num">'+totals[i]+'</div><div class="bar" style="height:'+Math.max(2,h)+'px"></div><div class="bar-label">'+d.slice(5)+'</div></div>';
+  }).join('');
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = Object.keys(DATA.pages).map(p=>{
+    const todayN = (DATA.counts[p]||{})[today]||0;
+    return '<tr><td>'+DATA.pages[p]+'</td><td class="num">'+fmt(todayN)+'</td><td class="num">'+fmt(sumDays(p,last7))+'</td><td class="num">'+fmt(sumDays(p,days))+'</td></tr>';
+  }).join('');
+  document.getElementById('note').textContent = DATA.note || '';
+}
+
+async function loadData(){
+  try{
+    const r = await fetch('../traffic.json?t=' + Date.now(), {cache:'no-store'});
+    DATA = await r.json();
+    draw();
+  }catch(e){
+    document.getElementById('updated').textContent = '读取 traffic.json 失败：' + e.message;
+  }
+}
+loadData();
+</script>
+</body>
+</html>
