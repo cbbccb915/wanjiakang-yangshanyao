@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-30T21:24:47+08:00",
+  "updated": "2026-10-30T21:30:46+08:00",
   "timezone": "Asia/Shanghai",
   "start_date": "2026-10-17",
   "days": [
@@ -42,7 +42,7 @@
       "2026-10-27": 0,
       "2026-10-28": 0,
       "2026-10-29": 0,
-      "2026-10-30": 0
+      "2026-10-30": 1
     },
     "guide-family": {
       "2026-10-17": 0,
@@ -142,13 +142,13 @@
     }
   },
   "fetch_offsets": {
-    "wjk2-home-20261030": 2,
-    "wjk2-guide-family-20261030": 2,
-    "wjk2-guide-storage-20261030": 2,
-    "wjk2-guide-bp-20261030": 2,
-    "wjk2-guide-elderly-20261030": 2,
-    "wjk2-guide-expired-20261030": 2,
-    "wjk2-guide-community-20261030": 2
+    "wjk2-home-20261030": 3,
+    "wjk2-guide-family-20261030": 3,
+    "wjk2-guide-storage-20261030": 3,
+    "wjk2-guide-bp-20261030": 3,
+    "wjk2-guide-elderly-20261030": 3,
+    "wjk2-guide-expired-20261030": 3,
+    "wjk2-guide-community-20261030": 3
   },
   "errors": 0,
   "note": "页面加载计数，包含刷新；不是独立访客(UV)。每次读取会先扣掉读取本身造成的 +1。"
